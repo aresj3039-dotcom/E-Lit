@@ -1,234 +1,743 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Unsent Voicemail</title>
-<style>
-  :root { --bg: #14161a; --fg: #e8e4da; --accent: #d9a65a; --dim: #7c7a73; }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg);
-    font-family: Georgia, "Times New Roman", serif; line-height: 1.7;
-    display: flex; justify-content: center; padding: 8vh 20px;
-  }
-  main { max-width: 36rem; width: 100%; }
-  h1 { font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase;
-       color: var(--dim); font-weight: normal; margin: 0 0 2.5rem; }
-  #text p { margin: 0 0 1.2rem; font-size: 1.15rem; opacity: 0;
-            animation: rise 1.2s ease forwards; }
-  #text p:nth-child(2) { animation-delay: 0.6s; }
-  #text p:nth-child(3) { animation-delay: 1.2s; }
-  #text p:nth-child(4) { animation-delay: 1.8s; }
-  @keyframes rise { from { opacity: 0; transform: translateY(6px); }
-                    to   { opacity: 1; transform: none; } }
-  #links { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.6rem; }
-  button.link {
-    background: none; border: none; color: var(--accent); font: inherit;
-    font-size: 1.05rem; text-align: left; padding: 0; cursor: pointer;
-    opacity: 0; animation: rise 1s ease forwards; animation-delay: 2.4s;
-  }
-  button.link:hover, button.link:focus-visible { text-decoration: underline; outline: none; }
-  .faded { color: var(--dim); }
-  footer { margin-top: 4rem; font-size: 0.8rem; color: var(--dim); }
-  footer button { background: none; border: none; color: var(--dim);
-                  font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Random Text Generator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f5f7fb;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 48px 20px;
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(196, 213, 255, 0.48), transparent 34rem),
+        #f5f7fb;
+    }
+
+    button,
+    select,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .container {
+      width: min(100%, 760px);
+      margin: 0 auto;
+    }
+
+    .intro {
+      margin: 0 0 28px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #4d63d8;
+      font-size: 0.76rem;
+      font-weight: 750;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 3rem);
+      letter-spacing: -0.055em;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      margin: 14px 0 0;
+      color: #64708a;
+      font-size: 1.02rem;
+      line-height: 1.6;
+    }
+
+    .card {
+      padding: clamp(22px, 5vw, 36px);
+      border: 1px solid #e5e9f2;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 22px 60px rgba(37, 52, 94, 0.09);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(110px, 0.62fr) auto;
+      gap: 16px;
+      align-items: end;
+      padding-bottom: 26px;
+      border-bottom: 1px solid #edf0f6;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      color: #35415a;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    select,
+    input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 13px;
+      border: 1px solid #dce2ed;
+      border-radius: 10px;
+      outline: none;
+      background: #fff;
+      color: #172033;
+    }
+
+    select:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    button:focus-visible {
+      outline: 3px solid #bac6ff;
+      outline-offset: 2px;
+    }
+
+    button {
+      min-height: 48px;
+      padding: 0 19px;
+      border: 0;
+      border-radius: 10px;
+      background: #4d63d8;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    button:hover {
+      background: #3e53c3;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .output-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0 12px;
+    }
+
+    .word-workspace {
+      display: none;
+      gap: 18px;
+      margin: 20px 0;
+    }
+
+    .word-workspace.is-visible {
+      display: grid;
+    }
+
+    .word-area {
+      min-width: 0;
+    }
+
+    .word-area-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+    }
+
+    .word-area-heading h3 {
+      margin: 0;
+      color: #35415a;
+      font-size: 0.88rem;
+    }
+
+    .word-hint {
+      margin: 0;
+      color: #758098;
+      font-size: 0.78rem;
+    }
+
+    .word-tray,
+    .poem-canvas {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 8px;
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid #e1e6ef;
+      border-radius: 12px;
+      background: #fafbfe;
+    }
+
+    .word-tile {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid #dce2ed;
+      border-radius: 999px;
+      background: #fff;
+      color: #35415a;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: grab;
+    }
+
+    .word-tile:hover {
+      border-color: #9aa8ed;
+      background: #f3f5ff;
+    }
+
+    .word-tile:active,
+    .poem-token[draggable="true"] {
+      cursor: grab;
+    }
+
+    .poem-canvas {
+      min-height: 100px;
+      align-items: center;
+      border-style: dashed;
+      background: #fff;
+    }
+
+    .poem-canvas.is-over,
+    .word-tray.is-over {
+      border-color: #7185e8;
+      background: #f3f5ff;
+    }
+
+    .poem-token {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px 4px 3px 11px;
+      border: 1px solid #dce2ed;
+      border-radius: 999px;
+      background: #fff;
+      color: #35415a;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .token-action {
+      display: inline-grid;
+      width: 26px;
+      min-height: 26px;
+      padding: 0;
+      place-items: center;
+      border-radius: 50%;
+      background: transparent;
+      color: #64708a;
+      font-size: 0.85rem;
+      line-height: 1;
+    }
+
+    .token-action:hover {
+      background: #edf0f7;
+      color: #172033;
+    }
+
+    .token-action:disabled {
+      cursor: default;
+      opacity: 0.35;
+    }
+
+    .poem-empty {
+      width: 100%;
+      margin: 0;
+      color: #96a0b3;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .copy-button {
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid #dce2ed;
+      background: #fff;
+      color: #35415a;
+      font-size: 0.85rem;
+    }
+
+    .copy-button:hover {
+      background: #f4f6fb;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 250px;
+      padding: 17px;
+      resize: vertical;
+      border: 1px solid #e1e6ef;
+      border-radius: 12px;
+      outline: none;
+      background: #fafbfe;
+      color: #263149;
+      line-height: 1.75;
+    }
+
+    textarea.output-hidden {
+      display: none;
+    }
+
+    textarea::placeholder {
+      color: #96a0b3;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 24px;
+      margin-top: 10px;
+      color: #758098;
+      font-size: 0.82rem;
+    }
+
+    #status {
+      margin: 0;
+    }
+
+    #status[data-error="true"] {
+      color: #b42318;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 30px 14px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .generate-button {
+        grid-column: 1 / -1;
+      }
+
+      .status-row {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+    const wordBank = [
+      "bright", "river", "garden", "quiet", "journey",
+      "silver", "forest", "morning", "window", "curious",
+      "cloud", "gentle", "planet", "music", "future",
+      "hidden", "ocean", "lantern", "wonder", "meadow",
+      "creative", "sunlight", "path", "dream", "stone",
+      "whisper", "colorful", "adventure", "breeze", "story",
+      "beautiful", "explore", "peaceful", "mountain", "discovery",
+      "imagine", "village", "energy", "mystery", "freedom"
+    ];
+
+    const textType = document.getElementById("textType");
+    const amountInput = document.getElementById("amount");
+    const output = document.getElementById("output");
+    const status = document.getElementById("status");
+    const wordCount = document.getElementById("wordCount");
+    const generateBtn = document.getElementById("generateBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const wordWorkspace = document.getElementById("wordWorkspace");
+    const wordTray = document.getElementById("wordTray");
+    const poemCanvas = document.getElementById("poemCanvas");
+    const outputHeading = document.getElementById("outputHeading");
+    let availableWords = [];
+    let poemWords = [];
+    let nextWordId = 0;
+
+    // Return one random word.
+    function randomWord() {
+      const index = Math.floor(Math.random() * wordBank.length);
+      return wordBank[index];
+    }
+
+    // Generate a sentence with random words.
+    function generateSentence() {
+      const length = Math.floor(Math.random() * 8) + 6;
+      const words = [];
+
+      for (let i = 0; i < length; i++) {
+        words.push(randomWord());
+      }
+
+      const sentence = words.join(" ");
+      return sentence.charAt(0).toUpperCase() +
+        sentence.slice(1) + ".";
+    }
+
+    // Generate one paragraph containing three sentences.
+    function generateParagraph() {
+      const sentences = [];
+
+      for (let i = 0; i < 3; i++) {
+        sentences.push(generateSentence());
+      }
+
+      return sentences.join(" ");
+    }
+
+    function updateWordCount() {
+      const count = output.value.trim()
+        ? output.value.trim().split(/\s+/).length
+        : 0;
+      wordCount.textContent = `${count} ${count === 1 ? "word" : "words"}`;
+    }
+
+    function updatePoemOutput() {
+      output.value = poemWords.map(({ word }) => word).join(" ");
+      updateWordCount();
+    }
+
+    function addWord(token, index = poemWords.length) {
+      poemWords.splice(index, 0, { id: nextWordId++, word: token.word });
+      renderPoem();
+    }
+
+    function renderWordTray() {
+      wordTray.replaceChildren();
+
+      availableWords.forEach((token) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "word-tile";
+        button.textContent = token.word;
+        button.draggable = true;
+        button.setAttribute("aria-label", `Add ${token.word} to your poem or story`);
+        button.addEventListener("click", () => addWord(token));
+        button.addEventListener("dragstart", (event) => {
+          event.dataTransfer.setData("text/plain", JSON.stringify({
+            source: "tray",
+            id: token.id
+          }));
+          event.dataTransfer.effectAllowed = "copy";
+        });
+        wordTray.append(button);
+      });
+    }
+
+    function movePoemWord(from, to) {
+      if (to < 0 || to >= poemWords.length) return;
+      const [token] = poemWords.splice(from, 1);
+      poemWords.splice(to, 0, token);
+      renderPoem();
+    }
+
+    function renderPoem() {
+      poemCanvas.replaceChildren();
+
+      if (poemWords.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "poem-empty";
+        emptyMessage.textContent = "Drop words here or click words in the tray to begin.";
+        poemCanvas.append(emptyMessage);
+      }
+
+      poemWords.forEach((token, index) => {
+        const item = document.createElement("span");
+        item.className = "poem-token";
+        item.draggable = true;
+        item.setAttribute("role", "listitem");
+        item.setAttribute("aria-label", `${token.word}, position ${index + 1}`);
+        item.addEventListener("dragstart", (event) => {
+          event.dataTransfer.setData("text/plain", JSON.stringify({
+            source: "poem",
+            id: token.id
+          }));
+          event.dataTransfer.effectAllowed = "move";
+        });
+        item.addEventListener("dragover", (event) => event.preventDefault());
+        item.addEventListener("drop", (event) => handleWordDrop(event, index));
+
+        const word = document.createElement("span");
+        word.textContent = token.word;
+        item.append(word);
+
+        const moveLeft = document.createElement("button");
+        moveLeft.type = "button";
+        moveLeft.className = "token-action";
+        moveLeft.textContent = "←";
+        moveLeft.setAttribute("aria-label", `Move ${token.word} left`);
+        moveLeft.disabled = index === 0;
+        moveLeft.addEventListener("click", () => movePoemWord(index, index - 1));
+        item.append(moveLeft);
+
+        const moveRight = document.createElement("button");
+        moveRight.type = "button";
+        moveRight.className = "token-action";
+        moveRight.textContent = "→";
+        moveRight.setAttribute("aria-label", `Move ${token.word} right`);
+        moveRight.disabled = index === poemWords.length - 1;
+        moveRight.addEventListener("click", () => movePoemWord(index, index + 1));
+        item.append(moveRight);
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "token-action";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", `Remove ${token.word}`);
+        remove.addEventListener("click", () => {
+          poemWords.splice(index, 1);
+          renderPoem();
+        });
+        item.append(remove);
+        poemCanvas.append(item);
+      });
+
+      updatePoemOutput();
+    }
+
+    function handleWordDrop(event, insertAt = poemWords.length) {
+      event.preventDefault();
+      event.stopPropagation();
+      poemCanvas.classList.remove("is-over");
+
+      let payload;
+      try {
+        payload = JSON.parse(event.dataTransfer.getData("text/plain"));
+      } catch {
+        return;
+      }
+
+      if (payload.source === "tray") {
+        const token = availableWords.find((word) => word.id === payload.id);
+        if (token) addWord(token, insertAt);
+      } else if (payload.source === "poem") {
+        const from = poemWords.findIndex((word) => word.id === payload.id);
+        if (from === -1) return;
+        const [token] = poemWords.splice(from, 1);
+        const adjustedIndex = from < insertAt ? insertAt - 1 : insertAt;
+        poemWords.splice(adjustedIndex, 0, token);
+        renderPoem();
+      }
+    }
+
+    // Main generator function.
+    function generateText() {
+      const type = textType.value;
+      const amount = Number(amountInput.value);
+      status.textContent = "";
+      status.dataset.error = "false";
+
+      if (
+        !Number.isInteger(amount) ||
+        amount < 1 ||
+        amount > 100
+      ) {
+        status.textContent = "Enter a whole number from 1 to 100.";
+        status.dataset.error = "true";
+        return;
+      }
+
+      const isWords = type === "words";
+      wordWorkspace.classList.toggle("is-visible", isWords);
+      output.classList.toggle("output-hidden", isWords);
+      outputHeading.textContent = isWords ? "Your text" : "Generated text";
+
+      let result = [];
+
+      if (type === "words") {
+        availableWords = Array.from({ length: amount }, () => ({
+          id: nextWordId++,
+          word: randomWord()
+        }));
+        poemWords = [];
+        renderWordTray();
+        renderPoem();
+      } else if (type === "sentences") {
+        for (let i = 0; i < amount; i++) {
+          result.push(generateSentence());
+        }
+
+        output.value = result.join(" ");
+      } else if (type === "paragraphs") {
+        for (let i = 0; i < amount; i++) {
+          result.push(generateParagraph());
+        }
+
+        output.value = result.join("\n\n");
+      }
+
+      if (!isWords) updateWordCount();
+      status.textContent = "Text generated successfully.";
+    }
+
+    // Copy the generated text.
+    async function copyText() {
+      if (!output.value.trim()) {
+        status.textContent = "Generate some text first.";
+        status.dataset.error = "true";
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(output.value);
+      } catch {
+        // Fallback for browsers where clipboard access is blocked.
+        output.select();
+        const copied = document.execCommand("copy");
+
+        status.textContent = copied
+          ? "Text copied to clipboard!"
+          : "Copy failed. Select the text and copy it manually.";
+        status.dataset.error = copied ? "false" : "true";
+        return;
+      }
+
+      status.textContent = "Text copied to clipboard!";
+      status.dataset.error = "false";
+    }
+
+    generateBtn.addEventListener("click", generateText);
+    copyBtn.addEventListener("click", copyText);
+    output.addEventListener("input", updateWordCount);
+    poemCanvas.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      poemCanvas.classList.add("is-over");
+    });
+    poemCanvas.addEventListener("dragleave", (event) => {
+      if (!poemCanvas.contains(event.relatedTarget)) {
+        poemCanvas.classList.remove("is-over");
+      }
+    });
+    poemCanvas.addEventListener("drop", handleWordDrop);
+    wordTray.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      wordTray.classList.add("is-over");
+    });
+    wordTray.addEventListener("dragleave", () => wordTray.classList.remove("is-over"));
+    wordTray.addEventListener("drop", (event) => {
+      event.preventDefault();
+      wordTray.classList.remove("is-over");
+      let payload;
+      try {
+        payload = JSON.parse(event.dataTransfer.getData("text/plain"));
+      } catch {
+        return;
+      }
+
+      if (payload.source !== "poem") return;
+      const index = poemWords.findIndex((word) => word.id === payload.id);
+      if (index !== -1) {
+        poemWords.splice(index, 1);
+        renderPoem();
+      }
+    });
+    // Generate an initial example when the page loads.
+    amountInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") generateText();
+    });
+
+    generateText();
+    });
+  </script>
 </head>
 <body>
-<main>
-  <h1>The Unsent Voicemail</h1>
-  <div id="text" aria-live="polite"></div>
-  <div id="links"></div>
-  <footer><button id="restart">begin again</button></footer>
-</main>
+  <main class="container">
+    <header class="intro">
+      <p class="eyebrow">A little inspiration</p>
+      <h1>Random Text Generator</h1>
+      <p class="subtitle">Create a few words, a sentence, or a whole paragraph in a click.</p>
+    </header>
 
-<script>
-/* ============================================================
-   EDIT THIS SECTION TO WRITE YOUR OWN STORY
-   ------------------------------------------------------------
-   Each passage has:
-     text   - array of paragraphs (strings)
-     again  - (optional) paragraphs shown when the reader returns
-              to this passage a second time or later
-     links  - array of { label, to, needs? }
-              needs: (optional) a function(state) that must return
-              true for the link to appear
-     onEnter- (optional) function(state) that changes the state
-   `state.memory` starts at 5 and shrinks as the reader revisits
-   things; the story uses it to make the narrator's memory fade.
-   ============================================================ */
-const passages = {
-  start: {
-    text: [
-      "Your phone buzzes: storage almost full. You start deleting old voicemails.",
-      "Forty-one of them are spam. One is from your grandmother, dated three winters ago.",
-      "Duration: 0:47. You never listened to it."
-    ],
-    links: [
-      { label: "Play it", to: "play" },
-      { label: "Delete it", to: "delete" },
-      { label: "Put the phone down", to: "kitchen" }
-    ]
-  },
+    <section class="card" aria-label="Text generator">
+      <div class="controls">
+        <div class="field">
+          <label for="textType">Text type</label>
+          <select id="textType">
+            <option value="words">Words</option>
+            <option value="sentences">Sentences</option>
+            <option value="paragraphs">Paragraphs</option>
+          </select>
+        </div>
 
-  play: {
-    text: [
-      "Static, then a kettle clicking off somewhere behind her voice.",
-      "\"It's nothing important. I just wanted to hear if you were still the kind of person who picks up.\"",
-      "A pause. The kettle again. Then the message ends."
-    ],
-    again: [
-      "Static, then a kettle. Her voice is farther away than before.",
-      "\"It's nothing important. I just wanted to hear if you were still...\"",
-      "You can't remember how the sentence ends."
-    ],
-    onEnter: s => { s.heard = true; s.memory -= 1; },
-    links: [
-      { label: "Call her back", to: "call" },
-      { label: "Play it again", to: "play" },
-      { label: "Think about the last time you did pick up", to: "kitchen" }
-    ]
-  },
+        <div class="field">
+          <label for="amount">Amount</label>
+          <input id="amount" type="number" min="1" max="100" value="3">
+        </div>
 
-  delete: {
-    text: [
-      "Your thumb hovers. The red button is very small.",
-      "You press it. The phone makes the soft sound of something going into a drawer.",
-      "Thirty-nine voicemails left. Then forty. Then you lose count."
-    ],
-    onEnter: s => { s.deleted = true; s.memory -= 2; },
-    links: [
-      { label: "Try to remember what she said", to: "remember" },
-      { label: "Put the phone down", to: "kitchen" }
-    ]
-  },
+        <button id="generateBtn" class="generate-button" type="button">Generate text</button>
+      </div>
 
-  kitchen: {
-    text: [
-      "You put the phone face-down on the counter and fill the kettle.",
-      "While it heats, you notice the sound it makes. You know that sound. You have always known that sound."
-    ],
-    again: [
-      "You fill the kettle again. The sound is just a sound now."
-    ],
-    onEnter: s => { s.memory -= 1; },
-    links: [
-      { label: "Pick the phone back up", to: "start" },
-      { label: "Listen to the kettle", to: "remember", needs: s => !s.deleted },
-      { label: "Try to remember her voice", to: "remember", needs: s => s.deleted }
-    ]
-  },
+      <div class="output-heading">
+        <h2 id="outputHeading">Generated text</h2>
+        <button id="copyBtn" class="copy-button" type="button">Copy text</button>
+      </div>
 
-  call: {
-    text: [
-      "It rings four times.",
-      "A recorded voice that isn't hers says the number you have dialed is no longer in service.",
-      "You stay on the line a moment anyway, the way you might stand in a room after the light's been turned off."
-    ],
-    onEnter: s => { s.memory -= 1; },
-    links: [
-      { label: "Hang up", to: "end" }
-    ]
-  },
+      <section id="wordWorkspace" class="word-workspace" aria-label="Build a poem or story">
+        <div class="word-area">
+          <div class="word-area-heading">
+            <h3>Word tray</h3>
+            <p class="word-hint">Drag or click a word to add it</p>
+          </div>
+          <div id="wordTray" class="word-tray" aria-label="Available words"></div>
+        </div>
+        <div class="word-area">
+          <div class="word-area-heading">
+            <h3>Your poem or story</h3>
+            <p class="word-hint">Drag to rearrange; use arrows to move</p>
+          </div>
+          <div
+            id="poemCanvas"
+            class="poem-canvas"
+            role="list"
+            aria-label="Your poem or story. Drop words here."
+          ></div>
+        </div>
+      </section>
 
-  remember: {
-    text: [
-      "You close your eyes and reach for it.",
-      "Something about a kettle. Something about picking up."
-    ],
-    links: [
-      { label: "Keep reaching", to: "end" }
-    ]
-  },
+      <textarea
+        id="output"
+        aria-labelledby="outputHeading"
+        placeholder="Your generated text will appear here..."
+        spellcheck="false"
+      ></textarea>
 
-  end: {
-    /* The ending text depends on the state, so it's a function. */
-    dynamic: s => {
-      if (s.heard && !s.deleted) {
-        return {
-          text: [
-            "You have her voice, and the sentence, and the kettle.",
-            "It isn't much. You save the voicemail, and for the first time in three winters, you let it stay."
-          ]
-        };
-      }
-      if (s.deleted) {
-        return {
-          text: [
-            "There was a voice. There was a kettle. There was a question you were supposed to answer.",
-            "<span class='faded'>You are almost sure of this.</span>"
-          ]
-        };
-      }
-      return {
-        text: [
-          "You never learn what she said.",
-          "The phone sits on the counter, forty-one voicemails fewer, or one. You can't tell which."
-        ]
-      };
-    },
-    links: []
-  }
-};
-/* ============================================================
-   END OF EDITABLE SECTION. The engine below usually doesn't
-   need changes unless you want new effects.
-   ============================================================ */
-
-const textEl = document.getElementById("text");
-const linksEl = document.getElementById("links");
-let state, visits;
-
-function reset() {
-  state = { memory: 5, heard: false, deleted: false };
-  visits = {};
-  go("start");
-}
-
-/* The "fade" effect: as state.memory drops, a growing share of
-   words in the text are replaced with dots, so the narrator's
-   memory visibly degrades as the reader moves through the story. */
-function decay(str) {
-  if (state.memory >= 4) return str;
-  const chance = (4 - Math.max(state.memory, 0)) * 0.07;
-  return str.replace(/>([^<]+)</g, (m, inner) => ">" + inner + "<")
-            .split(/(\s+)/)
-            .map(w => (/^\s+$/.test(w) || w.includes("<") || w.includes(">") || w.length < 5)
-              ? w
-              : (Math.random() < chance ? "·".repeat(w.length) : w))
-            .join("");
-}
-
-function go(id) {
-  const base = passages[id];
-  visits[id] = (visits[id] || 0) + 1;
-  if (base.onEnter) base.onEnter(state);
-
-  const p = base.dynamic ? { ...base, ...base.dynamic(state) } : base;
-  const paragraphs = (visits[id] > 1 && p.again) ? p.again : p.text;
-
-  textEl.innerHTML = "";
-  paragraphs.forEach(t => {
-    const el = document.createElement("p");
-    el.innerHTML = decay(t);
-    textEl.appendChild(el);
-  });
-
-  linksEl.innerHTML = "";
-  (p.links || [])
-    .filter(l => !l.needs || l.needs(state))
-    .forEach(l => {
-      const b = document.createElement("button");
-      b.className = "link";
-      b.textContent = l.label;
-      b.onclick = () => go(l.to);
-      linksEl.appendChild(b);
-    });
-}
-
-document.getElementById("restart").onclick = reset;
-reset();
-</script>
+      <div class="status-row">
+        <p id="status" role="status" aria-live="polite"></p>
+        <span id="wordCount" aria-live="polite">0 words</span>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
