@@ -1,743 +1,429 @@
+[index (1) (1).html](https://github.com/user-attachments/files/34984191/index.1.1.html)
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f7fb">
-  <title>Random Text Generator</title>
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #172033;
-      background: #f5f7fb;
-      font-synthesis: none;
-      text-rendering: optimizeLegibility;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      min-width: 320px;
-      min-height: 100vh;
-      margin: 0;
-      padding: 48px 20px;
-      background:
-        radial-gradient(ellipse at 12% 0%, rgba(196, 213, 255, 0.48), transparent 34rem),
-        #f5f7fb;
-    }
-
-    button,
-    select,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    .container {
-      width: min(100%, 760px);
-      margin: 0 auto;
-    }
-
-    .intro {
-      margin: 0 0 28px;
-      text-align: center;
-    }
-
-    .eyebrow {
-      margin: 0 0 10px;
-      color: #4d63d8;
-      font-size: 0.76rem;
-      font-weight: 750;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2rem, 6vw, 3rem);
-      letter-spacing: -0.055em;
-      line-height: 1.1;
-    }
-
-    .subtitle {
-      margin: 14px 0 0;
-      color: #64708a;
-      font-size: 1.02rem;
-      line-height: 1.6;
-    }
-
-    .card {
-      padding: clamp(22px, 5vw, 36px);
-      border: 1px solid #e5e9f2;
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.94);
-      box-shadow: 0 22px 60px rgba(37, 52, 94, 0.09);
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(110px, 0.62fr) auto;
-      gap: 16px;
-      align-items: end;
-      padding-bottom: 26px;
-      border-bottom: 1px solid #edf0f6;
-    }
-
-    .field {
-      display: grid;
-      gap: 8px;
-    }
-
-    label {
-      color: #35415a;
-      font-size: 0.88rem;
-      font-weight: 700;
-    }
-
-    select,
-    input {
-      width: 100%;
-      min-height: 48px;
-      padding: 0 13px;
-      border: 1px solid #dce2ed;
-      border-radius: 10px;
-      outline: none;
-      background: #fff;
-      color: #172033;
-    }
-
-    select:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible,
-    button:focus-visible {
-      outline: 3px solid #bac6ff;
-      outline-offset: 2px;
-    }
-
-    button {
-      min-height: 48px;
-      padding: 0 19px;
-      border: 0;
-      border-radius: 10px;
-      background: #4d63d8;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 150ms ease, transform 150ms ease;
-    }
-
-    button:hover {
-      background: #3e53c3;
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    .output-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin: 24px 0 12px;
-    }
-
-    .word-workspace {
-      display: none;
-      gap: 18px;
-      margin: 20px 0;
-    }
-
-    .word-workspace.is-visible {
-      display: grid;
-    }
-
-    .word-area {
-      min-width: 0;
-    }
-
-    .word-area-heading {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 9px;
-    }
-
-    .word-area-heading h3 {
-      margin: 0;
-      color: #35415a;
-      font-size: 0.88rem;
-    }
-
-    .word-hint {
-      margin: 0;
-      color: #758098;
-      font-size: 0.78rem;
-    }
-
-    .word-tray,
-    .poem-canvas {
-      display: flex;
-      flex-wrap: wrap;
-      align-content: flex-start;
-      gap: 8px;
-      min-height: 74px;
-      padding: 12px;
-      border: 1px solid #e1e6ef;
-      border-radius: 12px;
-      background: #fafbfe;
-    }
-
-    .word-tile {
-      min-height: 36px;
-      padding: 0 12px;
-      border: 1px solid #dce2ed;
-      border-radius: 999px;
-      background: #fff;
-      color: #35415a;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: grab;
-    }
-
-    .word-tile:hover {
-      border-color: #9aa8ed;
-      background: #f3f5ff;
-    }
-
-    .word-tile:active,
-    .poem-token[draggable="true"] {
-      cursor: grab;
-    }
-
-    .poem-canvas {
-      min-height: 100px;
-      align-items: center;
-      border-style: dashed;
-      background: #fff;
-    }
-
-    .poem-canvas.is-over,
-    .word-tray.is-over {
-      border-color: #7185e8;
-      background: #f3f5ff;
-    }
-
-    .poem-token {
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-      padding: 3px 4px 3px 11px;
-      border: 1px solid #dce2ed;
-      border-radius: 999px;
-      background: #fff;
-      color: #35415a;
-      font-size: 0.88rem;
-      font-weight: 600;
-    }
-
-    .token-action {
-      display: inline-grid;
-      width: 26px;
-      min-height: 26px;
-      padding: 0;
-      place-items: center;
-      border-radius: 50%;
-      background: transparent;
-      color: #64708a;
-      font-size: 0.85rem;
-      line-height: 1;
-    }
-
-    .token-action:hover {
-      background: #edf0f7;
-      color: #172033;
-    }
-
-    .token-action:disabled {
-      cursor: default;
-      opacity: 0.35;
-    }
-
-    .poem-empty {
-      width: 100%;
-      margin: 0;
-      color: #96a0b3;
-      font-size: 0.88rem;
-      text-align: center;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 1rem;
-      letter-spacing: -0.01em;
-    }
-
-    .copy-button {
-      min-height: 38px;
-      padding: 0 13px;
-      border: 1px solid #dce2ed;
-      background: #fff;
-      color: #35415a;
-      font-size: 0.85rem;
-    }
-
-    .copy-button:hover {
-      background: #f4f6fb;
-    }
-
-    textarea {
-      display: block;
-      width: 100%;
-      min-height: 250px;
-      padding: 17px;
-      resize: vertical;
-      border: 1px solid #e1e6ef;
-      border-radius: 12px;
-      outline: none;
-      background: #fafbfe;
-      color: #263149;
-      line-height: 1.75;
-    }
-
-    textarea.output-hidden {
-      display: none;
-    }
-
-    textarea::placeholder {
-      color: #96a0b3;
-    }
-
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      min-height: 24px;
-      margin-top: 10px;
-      color: #758098;
-      font-size: 0.82rem;
-    }
-
-    #status {
-      margin: 0;
-    }
-
-    #status[data-error="true"] {
-      color: #b42318;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 30px 14px;
-      }
-
-      .controls {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .generate-button {
-        grid-column: 1 / -1;
-      }
-
-      .status-row {
-        flex-direction: column;
-        gap: 4px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  </style>
-  <script defer>
-    document.addEventListener("DOMContentLoaded", () => {
-    const wordBank = [
-      "bright", "river", "garden", "quiet", "journey",
-      "silver", "forest", "morning", "window", "curious",
-      "cloud", "gentle", "planet", "music", "future",
-      "hidden", "ocean", "lantern", "wonder", "meadow",
-      "creative", "sunlight", "path", "dream", "stone",
-      "whisper", "colorful", "adventure", "breeze", "story",
-      "beautiful", "explore", "peaceful", "mountain", "discovery",
-      "imagine", "village", "energy", "mystery", "freedom"
-    ];
-
-    const textType = document.getElementById("textType");
-    const amountInput = document.getElementById("amount");
-    const output = document.getElementById("output");
-    const status = document.getElementById("status");
-    const wordCount = document.getElementById("wordCount");
-    const generateBtn = document.getElementById("generateBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const wordWorkspace = document.getElementById("wordWorkspace");
-    const wordTray = document.getElementById("wordTray");
-    const poemCanvas = document.getElementById("poemCanvas");
-    const outputHeading = document.getElementById("outputHeading");
-    let availableWords = [];
-    let poemWords = [];
-    let nextWordId = 0;
-
-    // Return one random word.
-    function randomWord() {
-      const index = Math.floor(Math.random() * wordBank.length);
-      return wordBank[index];
-    }
-
-    // Generate a sentence with random words.
-    function generateSentence() {
-      const length = Math.floor(Math.random() * 8) + 6;
-      const words = [];
-
-      for (let i = 0; i < length; i++) {
-        words.push(randomWord());
-      }
-
-      const sentence = words.join(" ");
-      return sentence.charAt(0).toUpperCase() +
-        sentence.slice(1) + ".";
-    }
-
-    // Generate one paragraph containing three sentences.
-    function generateParagraph() {
-      const sentences = [];
-
-      for (let i = 0; i < 3; i++) {
-        sentences.push(generateSentence());
-      }
-
-      return sentences.join(" ");
-    }
-
-    function updateWordCount() {
-      const count = output.value.trim()
-        ? output.value.trim().split(/\s+/).length
-        : 0;
-      wordCount.textContent = `${count} ${count === 1 ? "word" : "words"}`;
-    }
-
-    function updatePoemOutput() {
-      output.value = poemWords.map(({ word }) => word).join(" ");
-      updateWordCount();
-    }
-
-    function addWord(token, index = poemWords.length) {
-      poemWords.splice(index, 0, { id: nextWordId++, word: token.word });
-      renderPoem();
-    }
-
-    function renderWordTray() {
-      wordTray.replaceChildren();
-
-      availableWords.forEach((token) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "word-tile";
-        button.textContent = token.word;
-        button.draggable = true;
-        button.setAttribute("aria-label", `Add ${token.word} to your poem or story`);
-        button.addEventListener("click", () => addWord(token));
-        button.addEventListener("dragstart", (event) => {
-          event.dataTransfer.setData("text/plain", JSON.stringify({
-            source: "tray",
-            id: token.id
-          }));
-          event.dataTransfer.effectAllowed = "copy";
-        });
-        wordTray.append(button);
-      });
-    }
-
-    function movePoemWord(from, to) {
-      if (to < 0 || to >= poemWords.length) return;
-      const [token] = poemWords.splice(from, 1);
-      poemWords.splice(to, 0, token);
-      renderPoem();
-    }
-
-    function renderPoem() {
-      poemCanvas.replaceChildren();
-
-      if (poemWords.length === 0) {
-        const emptyMessage = document.createElement("p");
-        emptyMessage.className = "poem-empty";
-        emptyMessage.textContent = "Drop words here or click words in the tray to begin.";
-        poemCanvas.append(emptyMessage);
-      }
-
-      poemWords.forEach((token, index) => {
-        const item = document.createElement("span");
-        item.className = "poem-token";
-        item.draggable = true;
-        item.setAttribute("role", "listitem");
-        item.setAttribute("aria-label", `${token.word}, position ${index + 1}`);
-        item.addEventListener("dragstart", (event) => {
-          event.dataTransfer.setData("text/plain", JSON.stringify({
-            source: "poem",
-            id: token.id
-          }));
-          event.dataTransfer.effectAllowed = "move";
-        });
-        item.addEventListener("dragover", (event) => event.preventDefault());
-        item.addEventListener("drop", (event) => handleWordDrop(event, index));
-
-        const word = document.createElement("span");
-        word.textContent = token.word;
-        item.append(word);
-
-        const moveLeft = document.createElement("button");
-        moveLeft.type = "button";
-        moveLeft.className = "token-action";
-        moveLeft.textContent = "←";
-        moveLeft.setAttribute("aria-label", `Move ${token.word} left`);
-        moveLeft.disabled = index === 0;
-        moveLeft.addEventListener("click", () => movePoemWord(index, index - 1));
-        item.append(moveLeft);
-
-        const moveRight = document.createElement("button");
-        moveRight.type = "button";
-        moveRight.className = "token-action";
-        moveRight.textContent = "→";
-        moveRight.setAttribute("aria-label", `Move ${token.word} right`);
-        moveRight.disabled = index === poemWords.length - 1;
-        moveRight.addEventListener("click", () => movePoemWord(index, index + 1));
-        item.append(moveRight);
-
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "token-action";
-        remove.textContent = "×";
-        remove.setAttribute("aria-label", `Remove ${token.word}`);
-        remove.addEventListener("click", () => {
-          poemWords.splice(index, 1);
-          renderPoem();
-        });
-        item.append(remove);
-        poemCanvas.append(item);
-      });
-
-      updatePoemOutput();
-    }
-
-    function handleWordDrop(event, insertAt = poemWords.length) {
-      event.preventDefault();
-      event.stopPropagation();
-      poemCanvas.classList.remove("is-over");
-
-      let payload;
-      try {
-        payload = JSON.parse(event.dataTransfer.getData("text/plain"));
-      } catch {
-        return;
-      }
-
-      if (payload.source === "tray") {
-        const token = availableWords.find((word) => word.id === payload.id);
-        if (token) addWord(token, insertAt);
-      } else if (payload.source === "poem") {
-        const from = poemWords.findIndex((word) => word.id === payload.id);
-        if (from === -1) return;
-        const [token] = poemWords.splice(from, 1);
-        const adjustedIndex = from < insertAt ? insertAt - 1 : insertAt;
-        poemWords.splice(adjustedIndex, 0, token);
-        renderPoem();
-      }
-    }
-
-    // Main generator function.
-    function generateText() {
-      const type = textType.value;
-      const amount = Number(amountInput.value);
-      status.textContent = "";
-      status.dataset.error = "false";
-
-      if (
-        !Number.isInteger(amount) ||
-        amount < 1 ||
-        amount > 100
-      ) {
-        status.textContent = "Enter a whole number from 1 to 100.";
-        status.dataset.error = "true";
-        return;
-      }
-
-      const isWords = type === "words";
-      wordWorkspace.classList.toggle("is-visible", isWords);
-      output.classList.toggle("output-hidden", isWords);
-      outputHeading.textContent = isWords ? "Your text" : "Generated text";
-
-      let result = [];
-
-      if (type === "words") {
-        availableWords = Array.from({ length: amount }, () => ({
-          id: nextWordId++,
-          word: randomWord()
-        }));
-        poemWords = [];
-        renderWordTray();
-        renderPoem();
-      } else if (type === "sentences") {
-        for (let i = 0; i < amount; i++) {
-          result.push(generateSentence());
-        }
-
-        output.value = result.join(" ");
-      } else if (type === "paragraphs") {
-        for (let i = 0; i < amount; i++) {
-          result.push(generateParagraph());
-        }
-
-        output.value = result.join("\n\n");
-      }
-
-      if (!isWords) updateWordCount();
-      status.textContent = "Text generated successfully.";
-    }
-
-    // Copy the generated text.
-    async function copyText() {
-      if (!output.value.trim()) {
-        status.textContent = "Generate some text first.";
-        status.dataset.error = "true";
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(output.value);
-      } catch {
-        // Fallback for browsers where clipboard access is blocked.
-        output.select();
-        const copied = document.execCommand("copy");
-
-        status.textContent = copied
-          ? "Text copied to clipboard!"
-          : "Copy failed. Select the text and copy it manually.";
-        status.dataset.error = copied ? "false" : "true";
-        return;
-      }
-
-      status.textContent = "Text copied to clipboard!";
-      status.dataset.error = "false";
-    }
-
-    generateBtn.addEventListener("click", generateText);
-    copyBtn.addEventListener("click", copyText);
-    output.addEventListener("input", updateWordCount);
-    poemCanvas.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      poemCanvas.classList.add("is-over");
-    });
-    poemCanvas.addEventListener("dragleave", (event) => {
-      if (!poemCanvas.contains(event.relatedTarget)) {
-        poemCanvas.classList.remove("is-over");
-      }
-    });
-    poemCanvas.addEventListener("drop", handleWordDrop);
-    wordTray.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      wordTray.classList.add("is-over");
-    });
-    wordTray.addEventListener("dragleave", () => wordTray.classList.remove("is-over"));
-    wordTray.addEventListener("drop", (event) => {
-      event.preventDefault();
-      wordTray.classList.remove("is-over");
-      let payload;
-      try {
-        payload = JSON.parse(event.dataTransfer.getData("text/plain"));
-      } catch {
-        return;
-      }
-
-      if (payload.source !== "poem") return;
-      const index = poemWords.findIndex((word) => word.id === payload.id);
-      if (index !== -1) {
-        poemWords.splice(index, 1);
-        renderPoem();
-      }
-    });
-    // Generate an initial example when the page loads.
-    amountInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") generateText();
-    });
-
-    generateText();
-    });
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poem Generator Game</title>
+<style>
+  :root {
+    --bg: #f6f1e7;
+    --paper: #fffdf8;
+    --ink: #2b2b2b;
+    --accent: #7b4b94;
+    --accent-2: #d9a441;
+    --muted: #8a8478;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  header { text-align: center; padding: 28px 16px 8px; }
+  h1 { margin: 0; font-size: 2rem; color: var(--accent); }
+  header p { margin: 6px 0 0; color: var(--muted); }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; }
+
+  .tabs { display: flex; gap: 8px; justify-content: center; margin: 12px 0 20px; }
+  .tab {
+    border: 2px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .tab.active { background: var(--accent); color: #fff; }
+
+  .card {
+    background: var(--paper);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    padding: 24px;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+  button.action {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+  }
+  button.action.secondary { background: var(--accent-2); color: #2b2b2b; }
+  button.action:hover { filter: brightness(1.1); }
+
+  select {
+    font: inherit;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--muted);
+    background: #fff;
+  }
+
+  /* Generator mode */
+  #poemTitle { text-align: center; font-size: 1.4rem; font-style: italic; margin: 0 0 14px; }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px;
+    font-size: 1.2rem;
+    border-bottom: 1px dotted #ddd5c4;
+  }
+  .line .text { flex: 1; }
+  .line.locked .text { color: var(--accent); font-weight: bold; }
+  .line button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.1rem;
+    opacity: .6;
+  }
+  .line button:hover { opacity: 1; }
+
+  /* Magnet mode */
+  #board {
+    position: relative;
+    min-height: 260px;
+    background: #fbfaf5;
+    border: 2px dashed #cfc7b3;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    padding: 10px;
+    overflow: hidden;
+  }
+  #tray { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tile {
+    background: #fff;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 1.05rem;
+    box-shadow: 1px 2px 3px rgba(0,0,0,.2);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  .tile.dragging { cursor: grabbing; z-index: 1000; box-shadow: 3px 6px 10px rgba(0,0,0,.3); }
+  .tile.placed { position: absolute; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 8px 16px; border-radius: 8px;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+
+  /* Opening page */
+  #welcome {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    background: linear-gradient(160deg, #3b2a4d, #7b4b94 60%, #d9a441);
+    transition: opacity .7s ease, visibility .7s;
+  }
+  #welcome.hide { opacity: 0; visibility: hidden; }
+  .welcome-card {
+    max-width: 560px;
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 32px 30px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+  }
+  .welcome-card h2 { margin: 0 0 4px; color: var(--accent); font-size: 1.8rem; }
+  .welcome-card .label {
+    text-transform: uppercase; letter-spacing: .15em;
+    font-size: .75rem; color: var(--muted); margin-bottom: 16px;
+  }
+  .welcome-card p { line-height: 1.6; font-size: 1.05rem; margin: 0 0 14px; text-align: left; }
+  .welcome-card .signature { text-align: right; font-style: italic; color: var(--accent); }
+  #enterBtn {
+    margin-top: 10px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 36px; border-radius: 999px;
+    font: inherit; font-size: 1.1rem; cursor: pointer;
+    transition: transform .15s, filter .15s;
+  }
+  #enterBtn:hover { transform: scale(1.05); filter: brightness(1.1); }
+</style>
 </head>
 <body>
-  <main class="container">
-    <header class="intro">
-      <p class="eyebrow">A little inspiration</p>
-      <h1>Random Text Generator</h1>
-      <p class="subtitle">Create a few words, a sentence, or a whole paragraph in a click.</p>
-    </header>
 
-    <section class="card" aria-label="Text generator">
-      <div class="controls">
-        <div class="field">
-          <label for="textType">Text type</label>
-          <select id="textType">
-            <option value="words">Words</option>
-            <option value="sentences">Sentences</option>
-            <option value="paragraphs">Paragraphs</option>
-          </select>
-        </div>
+<div id="welcome">
+  <div class="welcome-card">
+    <h2>✒️ Poem Generator Game</h2>
+    <div class="label">Artist's Note</div>
+    <!-- EDIT THE NOTE BELOW: replace this text with your own words -->
+    <p>Welcome! Storytelling is dictated by language but what happens when the language we wish to use is dicated to us? Can we be creative with constraints? Can we communicate our thoughts and emotions even in the confines of limited language? This game was designed for anyone who has ever wanted to create a poem but didn't know where to start. Spin up a verse, keep the lines that sing to you, and swap out the rest.</p>
+    <p>There are no wrong answers here. Play with the words, make something strange or beautiful, and enjoy.</p>
+    <p class="signature">— Jennifer</p>
+    <button id="enterBtn">Enter</button>
+  </div>
+</div>
 
-        <div class="field">
-          <label for="amount">Amount</label>
-          <input id="amount" type="number" min="1" max="100" value="3">
-        </div>
+<header>
+  <h1>✒️ Poem Generator Game</h1>
+  <p>Spin up a poem, lock the lines you love, and re-roll the rest.</p>
+</header>
 
-        <button id="generateBtn" class="generate-button" type="button">Generate text</button>
-      </div>
+<main>
+  <div class="tabs">
+    <button class="tab active" data-mode="generator">Generator</button>
+    <button class="tab" data-mode="magnets">Word Magnets</button>
+  </div>
 
-      <div class="output-heading">
-        <h2 id="outputHeading">Generated text</h2>
-        <button id="copyBtn" class="copy-button" type="button">Copy text</button>
-      </div>
+  <!-- GENERATOR MODE -->
+  <section id="generator" class="card">
+    <h2 id="poemTitle"></h2>
+    <div id="poemLines"></div>
+    <div class="controls">
+      <select id="style">
+        <option value="free">Free verse (5 lines)</option>
+        <option value="couplets">Couplets (4 lines)</option>
+        <option value="haiku">Haiku-ish (3 lines)</option>
+      </select>
+      <button class="action" id="newPoem">🎲 New Poem</button>
+      <button class="action secondary" id="rerollUnlocked">🔄 Re-roll Unlocked</button>
+      <button class="action secondary" id="copyPoem">📋 Copy</button>
+    </div>
+  </section>
 
-      <section id="wordWorkspace" class="word-workspace" aria-label="Build a poem or story">
-        <div class="word-area">
-          <div class="word-area-heading">
-            <h3>Word tray</h3>
-            <p class="word-hint">Drag or click a word to add it</p>
-          </div>
-          <div id="wordTray" class="word-tray" aria-label="Available words"></div>
-        </div>
-        <div class="word-area">
-          <div class="word-area-heading">
-            <h3>Your poem or story</h3>
-            <p class="word-hint">Drag to rearrange; use arrows to move</p>
-          </div>
-          <div
-            id="poemCanvas"
-            class="poem-canvas"
-            role="list"
-            aria-label="Your poem or story. Drop words here."
-          ></div>
-        </div>
-      </section>
+  <!-- MAGNET MODE -->
+  <section id="magnets" class="card" hidden>
+    <div id="board"><em style="color:#aaa">Drag words here to build your poem…</em></div>
+    <div id="tray"></div>
+    <div class="controls">
+      <button class="action" id="newTiles">🎲 Deal New Words</button>
+      <button class="action secondary" id="clearBoard">🧹 Clear Board</button>
+      <button class="action secondary" id="copyBoard">📋 Copy Poem</button>
+    </div>
+  </section>
+</main>
 
-      <textarea
-        id="output"
-        aria-labelledby="outputHeading"
-        placeholder="Your generated text will appear here..."
-        spellcheck="false"
-      ></textarea>
+<footer>Made with HTML, CSS &amp; JavaScript · Edit the word lists in index.html to make it your own</footer>
+<div class="toast" id="toast"></div>
 
-      <div class="status-row">
-        <p id="status" role="status" aria-live="polite"></p>
-        <span id="wordCount" aria-live="polite">0 words</span>
-      </div>
-    </section>
-  </main>
+<script>
+/* ---------- WORD BANKS (edit these!) ---------- */
+const WORDS = {
+  noun:      ["moon", "river", "shadow", "garden", "whisper", "ocean", "memory", "storm", "lantern", "mountain", "dream", "ember", "feather", "star", "silence", "window", "ghost", "meadow", "flowers", "squirrel", "home", "house", "path", "gravel", "tree", "sky", "cloud", "ink pen", "paper", "book", "grass", "stream", "fish", "rope-swing", "barn", "dell"],
+  adj:       ["silver", "quiet", "wild", "golden", "fading", "hollow", "tender", "restless", "crimson", "gentle", "ancient", "lonely", "bright", "secret", "angry", "passionate", "dull", "rainy", "undulating", "light-soaked", "rolling", "tumultuous", "burning", "troublesome", "forgotten", "billowy", "unknowable", "sentimental", "regretful"],
+  verb:      ["dances", "whispers", "wanders", "melts", "sings", "burns", "drifts", "waits", "trembles", "blooms", "falls", "rises", "sleeps", "glows", "walks", "sobs", "stammers", "cry", "runs", "swings", "remembers", "punches", "catches", "erases", "writes", "imagines", "floats", "swims", "dances", "fishes", "lies", "coaxes", "laughs"],
+  verbBase:  ["dance", "wander", "sing", "drift", "listen", "wake", "dream", "follow", "remember", "fly", "bloom", "rest"],
+  adv:       ["softly", "slowly", "quietly", "gently", "endlessly", "bravely", "faintly", "tenderly", "swiftly", "quickly", "happily", "mournfully", "belatedly", "darkly", "lightly", "rapidly", "impossibly", "posthumously"],
+  prep:      ["beneath", "beyond", "above", "among", "within", "across", "behind", "beside", "over", "under", "atop", "next to", "aside", "front", "ahead"],
+  time:      ["at dawn", "at midnight", "in autumn", "in winter's hush", "before the rain", "after the storm", "at twilight", "in the last light", "yesterday", "in years past", "forver", "never", "at noon", "in summer's heat", "winter's chill", "autumn cool"]
+};
+
+const LINE_TEMPLATES = [
+  "The {adj} {noun} {verb} {adv}",
+  "{prep} the {adj} {noun}, a {noun} {verb}",
+  "O {adj} {noun}, {verb} {time}",
+  "I {verbBase} {prep} the {noun}",
+  "Where the {noun} {verb} {time}",
+  "A {adj} {noun} {verb} like {noun}",
+  "We {verbBase} {adv} {prep} {adj} {noun}s",
+  "{time}, the {noun} {verb}",
+  "Every {noun} remembers the {adj} {noun}",
+  "Let the {noun} {verbBase} {adv}"
+];
+
+const TITLES = [
+  "Ode to the {noun}", "The {adj} {noun}", "{time}", "Letters to a {noun}", "{noun} and {noun}", "A {adj} Hour"
+];
+
+const STYLES = { free: 5, couplets: 4, haiku: 3 };
+
+/* ---------- HELPERS ---------- */
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function fill(template) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => pick(WORDS[key]));
+}
+function makeLine() { return cap(fill(pick(LINE_TEMPLATES))); }
+function makeTitle() { return cap(fill(pick(TITLES))); }
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1600);
+}
+function copyText(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => toast("Copied!"));
+  } else {
+    toast("Copy isn't supported in this browser");
+  }
+}
+
+/* ---------- GENERATOR MODE ---------- */
+let lines = [];   // {text, locked}
+
+function renderPoem() {
+  const box = document.getElementById("poemLines");
+  box.innerHTML = "";
+  lines.forEach((ln, i) => {
+    const row = document.createElement("div");
+    row.className = "line" + (ln.locked ? " locked" : "");
+    row.innerHTML = `
+      <span class="text"></span>
+      <button title="Re-roll this line" data-act="roll">🎲</button>
+      <button title="Lock / unlock" data-act="lock">${ln.locked ? "🔒" : "🔓"}</button>`;
+    row.querySelector(".text").textContent = ln.text;
+    row.querySelector('[data-act="roll"]').onclick = () => {
+      if (!ln.locked) { ln.text = makeLine(); renderPoem(); }
+    };
+    row.querySelector('[data-act="lock"]').onclick = () => {
+      ln.locked = !ln.locked; renderPoem();
+    };
+    box.appendChild(row);
+  });
+}
+
+function newPoem() {
+  const count = STYLES[document.getElementById("style").value];
+  lines = Array.from({ length: count }, () => ({ text: makeLine(), locked: false }));
+  document.getElementById("poemTitle").textContent = makeTitle();
+  renderPoem();
+}
+
+document.getElementById("newPoem").onclick = newPoem;
+document.getElementById("style").onchange = newPoem;
+document.getElementById("rerollUnlocked").onclick = () => {
+  lines.forEach(l => { if (!l.locked) l.text = makeLine(); });
+  renderPoem();
+};
+document.getElementById("copyPoem").onclick = () => {
+  const title = document.getElementById("poemTitle").textContent;
+  copyText(title + "\n\n" + lines.map(l => l.text).join("\n"));
+};
+
+/* ---------- MAGNET MODE ---------- */
+const board = document.getElementById("board");
+const tray = document.getElementById("tray");
+
+function dealTiles() {
+  tray.innerHTML = "";
+  const pool = [
+    ...WORDS.noun, ...WORDS.adj, ...WORDS.verb, ...WORDS.verbBase,
+    ...WORDS.adv, ...WORDS.prep,
+    "the", "a", "and", "of", "I", "you", "we", "in", "like", "my", "your", "is", "to", "s", "ing", "ed"
+  ];
+  const chosen = new Set();
+  while (chosen.size < 30) chosen.add(pick(pool));
+  chosen.forEach(w => tray.appendChild(makeTile(w)));
+}
+
+function makeTile(word) {
+  const el = document.createElement("div");
+  el.className = "tile";
+  el.textContent = word;
+  enableDrag(el);
+  return el;
+}
+
+function enableDrag(el) {
+  el.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const rect = el.getBoundingClientRect();
+    const offX = e.clientX - rect.left;
+    const offY = e.clientY - rect.top;
+
+    // Move tile to body while dragging so it floats freely
+    el.classList.add("dragging");
+    el.style.position = "fixed";
+    el.style.left = rect.left + "px";
+    el.style.top = rect.top + "px";
+    el.style.width = rect.width + "px";
+    document.body.appendChild(el);
+    el.setPointerCapture(e.pointerId);
+
+    const move = ev => {
+      el.style.left = (ev.clientX - offX) + "px";
+      el.style.top = (ev.clientY - offY) + "px";
+    };
+    const up = ev => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      el.classList.remove("dragging");
+      el.style.width = "";
+
+      const b = board.getBoundingClientRect();
+      const inBoard = ev.clientX > b.left && ev.clientX < b.right &&
+                      ev.clientY > b.top && ev.clientY < b.bottom;
+      if (inBoard) {
+        const placeholder = board.querySelector("em");
+        if (placeholder) placeholder.remove();
+        el.classList.add("placed");
+        el.style.position = "absolute";
+        el.style.left = Math.max(0, ev.clientX - offX - b.left) + "px";
+        el.style.top = Math.max(0, ev.clientY - offY - b.top) + "px";
+        board.appendChild(el);
+      } else {
+        el.classList.remove("placed");
+        el.style.position = "";
+        el.style.left = el.style.top = "";
+        tray.appendChild(el);
+      }
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+  });
+}
+
+document.getElementById("newTiles").onclick = dealTiles;
+document.getElementById("clearBoard").onclick = () => {
+  board.querySelectorAll(".tile").forEach(t => {
+    t.classList.remove("placed");
+    t.style.position = ""; t.style.left = t.style.top = "";
+    tray.appendChild(t);
+  });
+};
+document.getElementById("copyBoard").onclick = () => {
+  // Read tiles top-to-bottom, then left-to-right, grouping into rows
+  const tiles = [...board.querySelectorAll(".tile")].map(t => ({
+    word: t.textContent, x: parseFloat(t.style.left), y: parseFloat(t.style.top)
+  })).sort((a, b) => a.y - b.y);
+  if (!tiles.length) return toast("Place some words first!");
+  const rows = [];
+  tiles.forEach(t => {
+    const row = rows.find(r => Math.abs(r.y - t.y) < 24);
+    if (row) row.items.push(t); else rows.push({ y: t.y, items: [t] });
+  });
+  const text = rows.map(r => r.items.sort((a, b) => a.x - b.x).map(i => i.word).join(" ")).join("\n");
+  copyText(text);
+};
+
+/* ---------- TABS ---------- */
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("generator").hidden = btn.dataset.mode !== "generator";
+    document.getElementById("magnets").hidden = btn.dataset.mode !== "magnets";
+  };
+});
+
+/* ---------- OPENING PAGE ---------- */
+document.getElementById("enterBtn").onclick = () => {
+  const w = document.getElementById("welcome");
+  w.classList.add("hide");
+  setTimeout(() => w.remove(), 800);
+};
+
+/* ---------- START ---------- */
+newPoem();
+dealTiles();
+</script>
 </body>
 </html>
