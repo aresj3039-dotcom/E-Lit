@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poem Generator Game</title>
+<style>
+  :root {
+    --bg: #f6f1e7;
+    --paper: #fffdf8;
+    --ink: #2b2b2b;
+    --accent: #7b4b94;
+    --accent-2: #d9a441;
+    --muted: #8a8478;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  header { text-align: center; padding: 28px 16px 8px; }
+  h1 { margin: 0; font-size: 2rem; color: var(--accent); }
+  header p { margin: 6px 0 0; color: var(--muted); }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; }
+
+  .tabs { display: flex; gap: 8px; justify-content: center; margin: 12px 0 20px; }
+  .tab {
+    border: 2px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .tab.active { background: var(--accent); color: #fff; }
+
+  .card {
+    background: var(--paper);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    padding: 24px;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+  button.action {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+  }
+  button.action.secondary { background: var(--accent-2); color: #2b2b2b; }
+  button.action:hover { filter: brightness(1.1); }
+
+  select {
+    font: inherit;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--muted);
+    background: #fff;
+  }
+
+  /* Generator mode */
+  #poemTitle { text-align: center; font-size: 1.4rem; font-style: italic; margin: 0 0 14px; }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px;
+    font-size: 1.2rem;
+    border-bottom: 1px dotted #ddd5c4;
+  }
+  .line .text { flex: 1; }
+  .line.locked .text { color: var(--accent); font-weight: bold; }
+  .line button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.1rem;
+    opacity: .6;
+  }
+  .line button:hover { opacity: 1; }
+
+  /* Magnet mode */
+  #board {
+    position: relative;
+    min-height: 260px;
+    background: #fbfaf5;
+    border: 2px dashed #cfc7b3;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    padding: 10px;
+    overflow: hidden;
+  }
+  #tray { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tile {
+    background: #fff;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 1.05rem;
+    box-shadow: 1px 2px 3px rgba(0,0,0,.2);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  .tile.dragging { cursor: grabbing; z-index: 1000; box-shadow: 3px 6px 10px rgba(0,0,0,.3); }
+  .tile.placed { position: absolute; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 8px 16px; border-radius: 8px;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✒️ Poem Generator Game</h1>
+  <p>Spin up a poem, lock the lines you love, and re-roll the rest.</p>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-mode="generator">Generator</button>
+    <button class="tab" data-mode="magnets">Word Magnets</button>
+  </div>
+
+  <!-- GENERATOR MODE -->
+  <section id="generator" class="card">
+    <h2 id="poemTitle"></h2>
+    <div id="poemLines"></div>
+    <div class="controls">
+      <select id="style">
+        <option value="free">Free verse (5 lines)</option>
+        <option value="couplets">Couplets (4 lines)</option>
+        <option value="haiku">Haiku-ish (3 lines)</option>
+      </select>
+      <button class="action" id="newPoem">🎲 New Poem</button>
+      <button class="action secondary" id="rerollUnlocked">🔄 Re-roll Unlocked</button>
+      <button class="action secondary" id="copyPoem">📋 Copy</button>
+    </div>
+  </section>
+
+  <!-- MAGNET MODE -->
+  <section id="magnets" class="card" hidden>
+    <div id="board"><em style="color:#aaa">Drag words here to build your poem…</em></div>
+    <div id="tray"></div>
+    <div class="controls">
+      <button class="action" id="newTiles">🎲 Deal New Words</button>
+      <button class="action secondary" id="clearBoard">🧹 Clear Board</button>
+      <button class="action secondary" id="copyBoard">📋 Copy Poem</button>
+    </div>
+  </section>
+</main>
+
+<footer>Made with HTML, CSS &amp; JavaScript · Edit the word lists in index.html to make it your own</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- WORD BANKS (edit these!) ---------- */
+const WORDS = {
+  noun:      ["moon", "river", "shadow", "garden", "whisper", "ocean", "memory", "storm", "lantern", "mountain", "dream", "ember", "feather", "star", "silence", "window", "ghost", "meadow"],
+  adj:       ["silver", "quiet", "wild", "golden", "fading", "hollow", "tender", "restless", "crimson", "gentle", "ancient", "lonely", "bright", "secret"],
+  verb:      ["dances", "whispers", "wanders", "melts", "sings", "burns", "drifts", "waits", "trembles", "blooms", "falls", "rises", "sleeps", "glows"],
+  verbBase:  ["dance", "wander", "sing", "drift", "listen", "wake", "dream", "follow", "remember", "fly", "bloom", "rest"],
+  adv:       ["softly", "slowly", "quietly", "gently", "endlessly", "bravely", "faintly", "tenderly"],
+  prep:      ["beneath", "beyond", "above", "among", "within", "across", "behind", "beside"],
+  time:      ["at dawn", "at midnight", "in autumn", "in winter's hush", "before the rain", "after the storm", "at twilight", "in the last light"]
+};
+
+const LINE_TEMPLATES = [
+  "The {adj} {noun} {verb} {adv}",
+  "{prep} the {adj} {noun}, a {noun} {verb}",
+  "O {adj} {noun}, {verb} {time}",
+  "I {verbBase} {prep} the {noun}",
+  "Where the {noun} {verb} {time}",
+  "A {adj} {noun} {verb} like {noun}",
+  "We {verbBase} {adv} {prep} {adj} {noun}s",
+  "{time}, the {noun} {verb}",
+  "Every {noun} remembers the {adj} {noun}",
+  "Let the {noun} {verbBase} {adv}"
+];
+
+const TITLES = [
+  "Ode to the {noun}", "The {adj} {noun}", "{time}", "Letters to a {noun}", "{noun} and {noun}", "A {adj} Hour"
+];
+
+const STYLES = { free: 5, couplets: 4, haiku: 3 };
+
+/* ---------- HELPERS ---------- */
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function fill(template) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => pick(WORDS[key]));
+}
+function makeLine() { return cap(fill(pick(LINE_TEMPLATES))); }
+function makeTitle() { return cap(fill(pick(TITLES))); }
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1600);
+}
+function copyText(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => toast("Copied!"));
+  } else {
+    toast("Copy isn't supported in this browser");
+  }
+}
+
+/* ---------- GENERATOR MODE ---------- */
+let lines = [];   // {text, locked}
+
+function renderPoem() {
+  const box = document.getElementById("poemLines");
+  box.innerHTML = "";
+  lines.forEach((ln, i) => {
+    const row = document.createElement("div");
+    row.className = "line" + (ln.locked ? " locked" : "");
+    row.innerHTML = `
+      <span class="text"></span>
+      <button title="Re-roll this line" data-act="roll">🎲</button>
+      <button title="Lock / unlock" data-act="lock">${ln.locked ? "🔒" : "🔓"}</button>`;
+    row.querySelector(".text").textContent = ln.text;
+    row.querySelector('[data-act="roll"]').onclick = () => {
+      if (!ln.locked) { ln.text = makeLine(); renderPoem(); }
+    };
+    row.querySelector('[data-act="lock"]').onclick = () => {
+      ln.locked = !ln.locked; renderPoem();
+    };
+    box.appendChild(row);
+  });
+}
+
+function newPoem() {
+  const count = STYLES[document.getElementById("style").value];
+  lines = Array.from({ length: count }, () => ({ text: makeLine(), locked: false }));
+  document.getElementById("poemTitle").textContent = makeTitle();
+  renderPoem();
+}
+
+document.getElementById("newPoem").onclick = newPoem;
+document.getElementById("style").onchange = newPoem;
+document.getElementById("rerollUnlocked").onclick = () => {
+  lines.forEach(l => { if (!l.locked) l.text = makeLine(); });
+  renderPoem();
+};
+document.getElementById("copyPoem").onclick = () => {
+  const title = document.getElementById("poemTitle").textContent;
+  copyText(title + "\n\n" + lines.map(l => l.text).join("\n"));
+};
+
+/* ---------- MAGNET MODE ---------- */
+const board = document.getElementById("board");
+const tray = document.getElementById("tray");
+
+function dealTiles() {
+  tray.innerHTML = "";
+  const pool = [
+    ...WORDS.noun, ...WORDS.adj, ...WORDS.verb, ...WORDS.verbBase,
+    ...WORDS.adv, ...WORDS.prep,
+    "the", "a", "and", "of", "I", "you", "we", "in", "like", "my", "your", "is", "to", "s", "ing", "ed"
+  ];
+  const chosen = new Set();
+  while (chosen.size < 30) chosen.add(pick(pool));
+  chosen.forEach(w => tray.appendChild(makeTile(w)));
+}
+
+function makeTile(word) {
+  const el = document.createElement("div");
+  el.className = "tile";
+  el.textContent = word;
+  enableDrag(el);
+  return el;
+}
+
+function enableDrag(el) {
+  el.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const rect = el.getBoundingClientRect();
+    const offX = e.clientX - rect.left;
+    const offY = e.clientY - rect.top;
+
+    // Move tile to body while dragging so it floats freely
+    el.classList.add("dragging");
+    el.style.position = "fixed";
+    el.style.left = rect.left + "px";
+    el.style.top = rect.top + "px";
+    el.style.width = rect.width + "px";
+    document.body.appendChild(el);
+    el.setPointerCapture(e.pointerId);
+
+    const move = ev => {
+      el.style.left = (ev.clientX - offX) + "px";
+      el.style.top = (ev.clientY - offY) + "px";
+    };
+    const up = ev => {
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      el.classList.remove("dragging");
+      el.style.width = "";
+
+      const b = board.getBoundingClientRect();
+      const inBoard = ev.clientX > b.left && ev.clientX < b.right &&
+                      ev.clientY > b.top && ev.clientY < b.bottom;
+      if (inBoard) {
+        const placeholder = board.querySelector("em");
+        if (placeholder) placeholder.remove();
+        el.classList.add("placed");
+        el.style.position = "absolute";
+        el.style.left = Math.max(0, ev.clientX - offX - b.left) + "px";
+        el.style.top = Math.max(0, ev.clientY - offY - b.top) + "px";
+        board.appendChild(el);
+      } else {
+        el.classList.remove("placed");
+        el.style.position = "";
+        el.style.left = el.style.top = "";
+        tray.appendChild(el);
+      }
+    };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+  });
+}
+
+document.getElementById("newTiles").onclick = dealTiles;
+document.getElementById("clearBoard").onclick = () => {
+  board.querySelectorAll(".tile").forEach(t => {
+    t.classList.remove("placed");
+    t.style.position = ""; t.style.left = t.style.top = "";
+    tray.appendChild(t);
+  });
+};
+document.getElementById("copyBoard").onclick = () => {
+  // Read tiles top-to-bottom, then left-to-right, grouping into rows
+  const tiles = [...board.querySelectorAll(".tile")].map(t => ({
+    word: t.textContent, x: parseFloat(t.style.left), y: parseFloat(t.style.top)
+  })).sort((a, b) => a.y - b.y);
+  if (!tiles.length) return toast("Place some words first!");
+  const rows = [];
+  tiles.forEach(t => {
+    const row = rows.find(r => Math.abs(r.y - t.y) < 24);
+    if (row) row.items.push(t); else rows.push({ y: t.y, items: [t] });
+  });
+  const text = rows.map(r => r.items.sort((a, b) => a.x - b.x).map(i => i.word).join(" ")).join("\n");
+  copyText(text);
+};
+
+/* ---------- TABS ---------- */
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("generator").hidden = btn.dataset.mode !== "generator";
+    document.getElementById("magnets").hidden = btn.dataset.mode !== "magnets";
+  };
+});
+
+/* ---------- START ---------- */
+newPoem();
+dealTiles();
+</script>
+</body>
+</html>
