@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haiku Magnets</title>
+<style>
+  :root {
+    --bg: #f6f1e7;
+    --paper: #fffdf8;
+    --ink: #2b2b2b;
+    --accent: #7b4b94;
+    --accent-2: #d9a441;
+    --muted: #8a8478;
+    --good: #3f8f5b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .back {
+    position: absolute; top: 14px; left: 16px;
+    color: var(--muted); text-decoration: none; font-size: .95rem;
+  }
+  .back:hover { color: var(--accent); }
+  header { text-align: center; padding: 40px 16px 8px; }
+  h1 { margin: 0; font-size: 2rem; color: var(--accent); }
+  header p { margin: 6px 0 0; color: var(--muted); }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; }
+  .card {
+    background: var(--paper);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    padding: 24px;
+  }
+
+  /* Haiku board */
+  #board { margin-bottom: 8px; }
+  .haiku-line {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px;
+  }
+  .haiku-line .cap {
+    width: 24px; text-align: center;
+    font-size: 1.3rem; color: var(--accent-2); font-weight: bold;
+  }
+  .haiku-line .slot {
+    flex: 1;
+    min-height: 54px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    padding: 6px 10px;
+    border: 2px dashed #cfc7b3;
+    border-radius: 10px;
+    background: #fbfaf5;
+    transition: border-color .15s, background .15s;
+  }
+  .haiku-line.hover .slot { border-color: var(--accent); background: #f3ebf7; }
+  .haiku-line.full .slot { border-style: solid; border-color: var(--good); }
+  .haiku-line .count {
+    width: 44px; text-align: right; font-size: .95rem; color: var(--muted);
+  }
+  .haiku-line.full .count { color: var(--good); font-weight: bold; }
+
+  #status {
+    text-align: center; min-height: 1.6em; margin: 6px 0 14px;
+    color: var(--muted); font-style: italic;
+  }
+  #status.done { color: var(--good); font-style: normal; font-weight: bold; font-size: 1.15rem; }
+
+  /* Tiles */
+  #tray {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 14px;
+    background: #efe9d9;
+    border-radius: 10px;
+    min-height: 120px;
+  }
+  .tile {
+    background: #fff;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 1.05rem;
+    box-shadow: 1px 2px 3px rgba(0,0,0,.2);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    white-space: nowrap;
+  }
+  .tile .syl {
+    font-size: .65rem; color: var(--accent); margin-left: 4px;
+    vertical-align: super; font-family: system-ui, sans-serif;
+  }
+  .tile.dragging {
+    cursor: grabbing; z-index: 1000;
+    box-shadow: 3px 8px 14px rgba(0,0,0,.3);
+    transform: rotate(-3deg) scale(1.08);
+  }
+  .tile.shake { animation: shake .35s; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 18px; }
+  button.action {
+    background: var(--accent); color: #fff; border: none;
+    padding: 10px 18px; border-radius: 8px;
+    font: inherit; cursor: pointer;
+  }
+  button.action.secondary { background: var(--accent-2); color: #2b2b2b; }
+  button.action:hover { filter: brightness(1.1); }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 8px 16px; border-radius: 8px;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<a class="back" href="index.html">← Artist's Statement</a>
+
+<header>
+  <h1>Haiku Magnets</h1>
+  <p>Drag words into the box to build a haiku: 5 · 7 · 5 syllables. The tiny number on each word is its syllable count.</p>
+</header>
+
+<main>
+  <div class="card">
+    <div id="board">
+      <div class="haiku-line" data-cap="5"><span class="cap">5</span><div class="slot"></div><span class="count">0/5</span></div>
+      <div class="haiku-line" data-cap="7"><span class="cap">7</span><div class="slot"></div><span class="count">0/7</span></div>
+      <div class="haiku-line" data-cap="5"><span class="cap">5</span><div class="slot"></div><span class="count">0/5</span></div>
+    </div>
+    <div id="status"></div>
+
+    <div id="tray"></div>
+
+    <div class="controls">
+      <button class="action" id="dealBtn">🎲 Deal New Words</button>
+      <button class="action secondary" id="clearBtn">🧹 Clear Board</button>
+      <button class="action secondary" id="copyBtn">📋 Copy Haiku</button>
+      <button class="action secondary" id="soundBtn">🔊 Sound on</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- WORD POOL (edit these! number = syllables) ---------- */
+const POOL = {
+  1: ["moon","sun","rain","snow","wind","frost","leaf","bird","stone","wave","night","dawn","mist","light","dark","dream","sky","star","tree","pond","cold","soft","still","calm","deep","wild","bright","fall","rise","sing","drift","glow","hush","call","bloom","wait","home","rest","sleep","sea","cloud","field","lake","hill","bone","gold","blue","grey","warm","sweet","slow","small","last","new","old","long","one"],
+  2: ["river","silver","whisper","garden","shadow","willow","autumn","winter","summer","morning","quiet","gentle","golden","fading","hollow","tender","wander","falling","rising","dancing","singing","sleeping","drifting","ember","feather","lantern","meadow","window","ocean","spirit","blossom","harvest","silence","heron","petal","thunder","cricket","over","under","again","alone","away","below","above","beside","behind","within","softly","slowly","gently","longing","glowing","waking","burning","waiting","blooming","sparrow","crimson","lonely","restless","ancient","secret","mountain","moonlight","starlight","sunrise","sunset","midnight","rainfall","snowfall","raindrop","daybreak","twilight","heartbeat","seashore","darkness","stillness"],
+  3: ["memory","butterfly","wilderness","beautiful","dragonfly","remember","forever","wandering","whispering","together","everything","silently","tenderly","endlessly","lullaby","horizon","melody","shimmering","november","october"]
+};
+const FUNC = ["the","a","and","of","in","on","I","you","we","my","your","like","with","through","from","no","so","now","here"];
+
+/* ---------- HELPERS ---------- */
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, n) => shuffle(a).slice(0, n);
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+/* ---------- SOUND (made in the browser, no audio files needed) ---------- */
+let actx = null, muted = false, noiseBuf = null;
+
+function ac() {
+  if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
+  if (actx && actx.state === "suspended") actx.resume();
+  return actx;
+}
+function tone(freq, dur, type, vol, delay, slideTo) {
+  if (muted) return;
+  const c = ac(); if (!c) return;
+  const t = c.currentTime + (delay || 0);
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || "sine";
+  o.frequency.setValueAtTime(freq, t);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol || 0.08, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t); o.stop(t + dur + 0.03);
+}
+// soft "scrubbing" tick played while a magnet is being moved
+function scrub() {
+  if (muted) return;
+  const c = ac(); if (!c) return;
+  if (!noiseBuf) {
+    noiseBuf = c.createBuffer(1, c.sampleRate * 0.1, c.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const t = c.currentTime;
+  const src = c.createBufferSource(); src.buffer = noiseBuf;
+  const f = c.createBiquadFilter(); f.type = "bandpass";
+  f.frequency.value = 1200 + Math.random() * 1600; f.Q.value = 2;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.05, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  src.connect(f); f.connect(g); g.connect(c.destination);
+  src.start(t); src.stop(t + 0.07);
+}
+const soundPick = () => tone(520, 0.09, "triangle", 0.08, 0, 780);
+const soundDrop = () => { tone(300, 0.1, "sine", 0.1, 0, 180); tone(900, 0.05, "triangle", 0.04, 0.02); };
+const soundNope = () => tone(150, 0.25, "sawtooth", 0.05, 0, 90);
+const soundDone = () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.45, "sine", 0.09, i * 0.14));
+
+/* ---------- GAME ---------- */
+const tray = document.getElementById("tray");
+const lines = [...document.querySelectorAll(".haiku-line")];
+const statusEl = document.getElementById("status");
+let wasComplete = false;
+
+function makeTile(word, syl) {
+  const el = document.createElement("div");
+  el.className = "tile";
+  el.dataset.word = word;
+  el.dataset.syl = syl;
+  el.appendChild(document.createTextNode(word));
+  const s = document.createElement("span");
+  s.className = "syl"; s.textContent = syl;
+  el.appendChild(s);
+  el.addEventListener("pointerdown", startDrag);
+  return el;
+}
+
+function deal() {
+  tray.innerHTML = "";
+  lines.forEach(l => l.querySelector(".slot").innerHTML = "");
+  const picks = [
+    ...sample(POOL[1], 9).map(w => [w, 1]),
+    ...sample(FUNC, 6).map(w => [w, 1]),
+    ...sample(POOL[2], 17).map(w => [w, 2]),
+    ...sample(POOL[3], 5).map(w => [w, 3])
+  ];
+  shuffle(picks).forEach(([w, s]) => tray.appendChild(makeTile(w, s)));
+  updateCounts();
+}
+
+function lineUsed(line) {
+  return [...line.querySelectorAll(".tile")].reduce((n, t) => n + Number(t.dataset.syl), 0);
+}
+
+function updateCounts() {
+  let allFull = true;
+  lines.forEach(l => {
+    const cap = Number(l.dataset.cap), used = lineUsed(l);
+    l.querySelector(".count").textContent = used + "/" + cap;
+    l.classList.toggle("full", used === cap);
+    if (used !== cap) allFull = false;
+  });
+  if (allFull) {
+    statusEl.textContent = "✨ Your haiku is complete!";
+    statusEl.className = "done";
+    if (!wasComplete) soundDone();
+  } else {
+    statusEl.textContent = "Fill each line exactly: 5 · 7 · 5";
+    statusEl.className = "";
+  }
+  wasComplete = allFull;
+}
+
+/* ---------- DRAGGING ---------- */
+let drag = null;
+
+function lineAt(x, y) {
+  return lines.find(l => {
+    const r = l.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  });
+}
+
+function startDrag(e) {
+  if (e.button !== undefined && e.button !== 0) return;
+  e.preventDefault();
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  el.classList.add("dragging");
+  el.style.position = "fixed";
+  el.style.left = r.left + "px";
+  el.style.top = r.top + "px";
+  document.body.appendChild(el);
+  updateCounts();
+  soundPick();
+  drag = { el, offX: e.clientX - r.left, offY: e.clientY - r.top, dist: 0, lx: e.clientX, ly: e.clientY, last: 0 };
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+}
+
+function onMove(e) {
+  if (!drag) return;
+  const { el } = drag;
+  el.style.left = (e.clientX - drag.offX) + "px";
+  el.style.top = (e.clientY - drag.offY) + "px";
+
+  drag.dist += Math.hypot(e.clientX - drag.lx, e.clientY - drag.ly);
+  drag.lx = e.clientX; drag.ly = e.clientY;
+  const now = performance.now();
+  if (drag.dist > 22 && now - drag.last > 80) { scrub(); drag.dist = 0; drag.last = now; }
+
+  const over = lineAt(e.clientX, e.clientY);
+  lines.forEach(l => l.classList.toggle("hover", l === over));
+}
+
+function onUp(e) {
+  if (!drag) return;
+  window.removeEventListener("pointermove", onMove);
+  window.removeEventListener("pointerup", onUp);
+  window.removeEventListener("pointercancel", onUp);
+
+  const { el } = drag;
+  drag = null;
+  el.classList.remove("dragging");
+  el.style.position = ""; el.style.left = ""; el.style.top = "";
+  lines.forEach(l => l.classList.remove("hover"));
+
+  const target = lineAt(e.clientX, e.clientY);
+  const syl = Number(el.dataset.syl);
+
+  if (target && lineUsed(target) + syl <= Number(target.dataset.cap)) {
+    const slot = target.querySelector(".slot");
+    const before = [...slot.querySelectorAll(".tile")].find(t => {
+      const r = t.getBoundingClientRect();
+      return e.clientY < r.top || (e.clientY <= r.bottom && e.clientX < r.left + r.width / 2);
+    });
+    slot.insertBefore(el, before || null);
+    soundDrop();
+  } else {
+    tray.appendChild(el);
+    if (target) {
+      // line was too full for this word
+      el.classList.add("shake");
+      setTimeout(() => el.classList.remove("shake"), 400);
+      soundNope();
+    } else {
+      soundDrop();
+    }
+  }
+  updateCounts();
+}
+
+/* ---------- BUTTONS ---------- */
+document.getElementById("dealBtn").onclick = deal;
+document.getElementById("clearBtn").onclick = () => {
+  lines.forEach(l => l.querySelectorAll(".tile").forEach(t => tray.appendChild(t)));
+  updateCounts();
+};
+document.getElementById("copyBtn").onclick = () => {
+  const text = lines.map(l => [...l.querySelectorAll(".tile")].map(t => t.dataset.word).join(" ")).join("\n");
+  if (!text.replace(/\s/g, "")) return toast("Place some words first!");
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast("Copied!"));
+  else toast("Copy isn't supported in this browser");
+};
+document.getElementById("soundBtn").onclick = e => {
+  muted = !muted;
+  e.currentTarget.textContent = muted ? "🔇 Sound off" : "🔊 Sound on";
+};
+
+deal();
+</script>
+</body>
+</html>

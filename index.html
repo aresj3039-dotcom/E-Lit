@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artist's Statement</title>
+<style>
+  :root {
+    --paper: #fffdf8;
+    --ink: #2b2b2b;
+    --accent: #7b4b94;
+    --muted: #8a8478;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    background: linear-gradient(160deg, #3b2a4d, #7b4b94 60%, #d9a441);
+  }
+  .statement {
+    max-width: 580px;
+    background: var(--paper);
+    border-radius: 14px;
+    padding: 40px 36px 32px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    animation: fadeIn 1s ease both;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .label {
+    text-transform: uppercase; letter-spacing: .18em;
+    font-size: .75rem; color: var(--muted);
+    margin-bottom: 6px; text-align: center;
+  }
+  h1 { margin: 0 0 22px; text-align: center; color: var(--accent); font-size: 1.9rem; font-weight: normal; }
+  p { line-height: 1.75; font-size: 1.08rem; margin: 0; }
+  .enter-wrap { text-align: center; margin-top: 28px; }
+  a.enter {
+    display: inline-block;
+    color: var(--accent);
+    font-size: 1.5rem;
+    font-style: italic;
+    letter-spacing: .12em;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    padding: 2px 6px;
+    transition: border-color .2s, letter-spacing .2s;
+  }
+  a.enter:hover, a.enter:focus { border-bottom-color: var(--accent); letter-spacing: .2em; outline: none; }
+</style>
+</head>
+<body>
+
+<div class="statement">
+  <div class="label">Artist's Statement</div>
+  <h1>Haiku Magnets</h1>
+
+  <!-- EDIT YOUR ARTIST'S STATEMENT BELOW: replace this paragraph with your own words -->
+  <p>This piece invites you to slow down and play with language. Each word is a small magnet, and each haiku is a breath of five, seven, and five. I made it for anyone who has ever wanted to write a poem but wasn't sure where to begin. There are no wrong words here, only new arrangements waiting to be found.</p>
+
+  <div class="enter-wrap">
+    <a class="enter" href="haiku.html">Enter</a>
+  </div>
+</div>
+
+</body>
+</html>
